@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import './App.css';
 import Dashboard from './components/Dashboard/Dashboard';
 import ResultsPage from './components/ResultsPage/ResultsPage';
+import AIAssistant from './components/AIAssistant/AIAssistant';
 import { ElectionAPI } from './services/api';
 
 function App() {
@@ -47,6 +48,9 @@ function App() {
           onRefresh={loadElectionData}
         />
       )}
+      
+      {/* AI Assistant Floating Widget */}
+      <AIAssistant />
     </div>
   );
 }
