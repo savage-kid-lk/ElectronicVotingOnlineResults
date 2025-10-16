@@ -1,0 +1,244 @@
+.dashboard {
+  min-height: 100vh;
+  background: linear-gradient(135deg, var(--primary-blue) 0%, #003d82 100%);
+  color: var(--white);
+  padding-bottom: 3rem;
+}
+
+.dashboard-header {
+  padding: 2rem;
+  background-color: rgba(0, 0, 0, 0.2);
+  text-align: center;
+}
+
+.header-controls {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+.last-updated {
+  font-size: 0.9rem;
+  opacity: 0.8;
+}
+
+.refresh-btn {
+  background: var(--primary-yellow);
+  color: var(--primary-black);
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: 5px;
+  cursor: pointer;
+  font-weight: bold;
+  transition: all 0.3s ease;
+}
+
+.refresh-btn:hover {
+  background: #e6c200;
+}
+
+.loading {
+  text-align: center;
+  padding: 2rem;
+  font-size: 1.1rem;
+  color: var(--dark-gray);
+}
+
+.dashboard-title {
+  font-size: 2rem;
+  font-weight: bold;
+  margin-bottom: 0.5rem;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.dashboard-subtitle {
+  font-size: 1.2rem;
+  opacity: 0.9;
+  font-weight: 300;
+}
+
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(280px, 1fr));
+  gap: 1.5rem;
+  padding: 2rem;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.stat-card {
+  background: var(--white);
+  border-radius: 10px;
+  padding: 1.5rem;
+  color: var(--dark-gray);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+  text-align: center;
+  transition: transform 0.3s ease;
+}
+
+.stat-card:hover {
+  transform: translateY(-5px);
+}
+
+.stat-card.blue {
+  border-top: 4px solid var(--primary-blue);
+}
+
+.stat-card.yellow {
+  border-top: 4px solid var(--primary-yellow);
+}
+
+.stat-card.green {
+  border-top: 4px solid var(--primary-green);
+}
+
+.stat-card.red {
+  border-top: 4px solid var(--primary-red);
+}
+
+.stat-card h3 {
+  font-size: 0.9rem;
+  margin-bottom: 0.5rem;
+  color: var(--dark-gray);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.stat-value {
+  font-size: 1.8rem;
+  font-weight: bold;
+  margin: 0.5rem 0;
+  color: var(--primary-blue);
+}
+
+.stat-percentage {
+  font-size: 1.2rem;
+  font-weight: bold;
+  color: var(--primary-green);
+}
+
+.stat-votes {
+  font-size: 0.9rem;
+  color: var(--dark-gray);
+  margin-top: 0.3rem;
+}
+
+.results-section {
+  max-width: 800px;
+  margin: 2rem auto;
+  padding: 0 2rem;
+}
+
+.section-title {
+  font-size: 1.5rem;
+  margin-bottom: 1.5rem;
+  text-align: center;
+  font-weight: 600;
+}
+
+.party-results {
+  background: var(--white);
+  border-radius: 10px;
+  padding: 1.5rem;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+}
+
+.party-result {
+  margin-bottom: 1rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid #eee;
+}
+
+.party-result:last-child {
+  margin-bottom: 0;
+  border-bottom: none;
+}
+
+.party-info {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.5rem;
+}
+
+.party-name {
+  font-weight: 600;
+  color: var(--dark-gray);
+  flex: 1;
+  text-align: left;
+}
+
+.party-votes {
+  font-weight: bold;
+  color: var(--primary-blue);
+  margin-left: 1rem;
+}
+
+.percentage-bar {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.percentage-fill {
+  height: 8px;
+  border-radius: 4px;
+  flex: 1;
+  transition: width 0.5s ease;
+}
+
+.percentage-fill.green { background-color: var(--primary-green); }
+.percentage-fill.blue { background-color: var(--primary-blue); }
+.percentage-fill.black { background-color: var(--primary-black); }
+.percentage-fill.red { background-color: var(--primary-red); }
+.percentage-fill.yellow { background-color: var(--primary-yellow); }
+
+.percentage-text {
+  font-weight: bold;
+  color: var(--dark-gray);
+  min-width: 50px;
+  text-align: right;
+}
+
+.view-results-btn {
+  background: var(--primary-yellow);
+  color: var(--primary-black);
+  border: none;
+  padding: 1rem 2rem;
+  font-size: 1.1rem;
+  font-weight: bold;
+  border-radius: 5px;
+  cursor: pointer;
+  margin: 2rem auto;
+  display: block;
+  transition: all 0.3s ease;
+}
+
+.view-results-btn:hover {
+  background: #e6c200;
+  transform: scale(1.05);
+}
+
+@media (max-width: 768px) {
+  .dashboard-title {
+    font-size: 1.5rem;
+  }
+  
+  .stats-grid {
+    grid-template-columns: 1fr;
+    padding: 1rem;
+  }
+  
+  .party-info {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  
+  .party-votes {
+    margin-left: 0;
+    margin-top: 0.3rem;
+  }
+}

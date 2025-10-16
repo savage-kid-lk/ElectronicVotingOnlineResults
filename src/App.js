@@ -1,23 +1,52 @@
-import logo from './logo.svg';
+import React, { useState, useEffect } from 'react';
 import './App.css';
+import Dashboard from './components/Dashboard/Dashboard';
+import ResultsPage from './components/ResultsPage/ResultsPage';
+import { ElectionAPI } from './services/api';
 
 function App() {
+  const [currentView, setCurrentView] = useState('dashboard');
+  const [electionData, setElectionData] = useState({
+    registeredVoters: 0,
+    votesCast: 0,
+    leadingParty: '',
+    leadingVotes: 0,
+    resultsCaptured: 0
+  });
+  const [lastUpdated, setLastUpdated] = useState(new Date());
+
+  useEffect(() => {
+    loadElectionData();
+    // Set up auto-refresh every 30 seconds
+    const interval = setInterval(() => {
+      loadElectionData();
+    }, 30000);
+
+    return () => clearInterval(interval);
+  }, []);
+
+  const loadElectionData = async () => {
+    const data = await ElectionAPI.getElectionSummary();
+    setElectionData(data);
+    setLastUpdated(new Date());
+  };
+
   return (
     <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
+      {currentView === 'dashboard' ? (
+        <Dashboard 
+          onNavigate={() => setCurrentView('results')}
+          electionData={electionData}
+          lastUpdated={lastUpdated}
+          onRefresh={loadElectionData}
+        />
+      ) : (
+        <ResultsPage 
+          onNavigate={() => setCurrentView('dashboard')}
+          lastUpdated={lastUpdated}
+          onRefresh={loadElectionData}
+        />
+      )}
     </div>
   );
 }
