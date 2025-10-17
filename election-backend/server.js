@@ -128,14 +128,12 @@ app.get('/api/election/regional', async (req, res) => {
   try {
     const conn = await getConnection();
     const [rows] = await conn.execute(`
-      SELECT 
-        region,
+      SELECT
         party_name,
         candidate_name,
-        vote_count,
-        image
+        vote_count
       FROM RegionalBallot
-      ORDER BY region, vote_count DESC
+      ORDER BY vote_count DESC
     `);
     res.json(rows);
   } catch (error) {
