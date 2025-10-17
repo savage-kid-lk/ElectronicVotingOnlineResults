@@ -6,11 +6,9 @@ require('dotenv').config();
 const app = express();
 const PORT = process.env.PORT || 5000;
 
-// Enable CORS
 app.use(cors());
 app.use(express.json());
 
-// Database configuration from .env
 const dbConfig = {
   host: process.env.DB_HOST,
   port: process.env.DB_PORT,
@@ -21,7 +19,7 @@ const dbConfig = {
 
 let connection = null;
 
-// Get DB connection
+// Connect to database once
 const getConnection = async () => {
   if (!connection) {
     try {
@@ -35,30 +33,30 @@ const getConnection = async () => {
   return connection;
 };
 
-// Root route for testing
+// Root route
 app.get('/', (req, res) => {
   res.send('✅ Election API server is live!');
 });
 
-// Summary route
+// ------------------------ SUMMARY ------------------------
 app.get('/api/election/summary', async (req, res) => {
   try {
     const conn = await getConnection();
     const [voterCount] = await conn.execute('SELECT COUNT(*) as count FROM VOTERS');
     const [voteCount] = await conn.execute('SELECT COUNT(*) as count FROM Vote');
     const [leadingParty] = await conn.execute(`
-      SELECT party_name, COUNT(*) as vote_count
+      SELECT party_name, COUNT(*) AS vote_count
       FROM Vote
       GROUP BY party_name
       ORDER BY vote_count DESC
       LIMIT 1
     `);
-    const [resultsCount] = await conn.execute('SELECT COUNT(DISTINCT party_name) as count FROM Vote');
+    const [resultsCount] = await conn.execute('SELECT COUNT(DISTINCT party_name) AS count FROM Vote');
 
     res.json({
       registeredVoters: voterCount[0].count,
       votesCast: voteCount[0].count,
-      leadingParty: leadingParty[0]?.party_name || 'No votes',
+      leadingParty: leadingParty[0]?.party_name || 'No votes yet',
       leadingVotes: leadingParty[0]?.vote_count || 0,
       resultsCaptured: resultsCount[0].count
     });
@@ -68,53 +66,44 @@ app.get('/api/election/summary', async (req, res) => {
   }
 });
 
-// Statistics route
+// ------------------------ NATIONAL RESULTS ------------------------
 app.get('/api/election/statistics', async (req, res) => {
   try {
     const conn = await getConnection();
     const [rows] = await conn.execute(`
       SELECT 
-        party_name,
-        COUNT(*) as total_votes,
-        COUNT(CASE WHEN DATE(timestamp) = CURDATE() THEN 1 END) as votes_today
-      FROM Vote
-      GROUP BY party_name
+        nb.party_name,
+        nb.candidate_name,
+        COUNT(v.id) AS total_votes
+      FROM NationalBallot nb
+      LEFT JOIN Vote v 
+        ON v.party_name = nb.party_name 
+        AND v.category = 'National'
+      GROUP BY nb.party_name, nb.candidate_name
       ORDER BY total_votes DESC
     `);
     res.json(rows);
   } catch (error) {
-    console.error('Error fetching vote statistics:', error);
-    res.status(500).json({ error: 'Failed to fetch vote statistics' });
+    console.error('Error fetching national results:', error);
+    res.status(500).json({ error: 'Failed to fetch national results' });
   }
 });
 
-// Provincial results route
+// ------------------------ PROVINCIAL RESULTS ------------------------
 app.get('/api/election/provincial', async (req, res) => {
   try {
     const conn = await getConnection();
     const [rows] = await conn.execute(`
       SELECT 
-        'Eastern Cape' as province,
-        (SELECT party_name FROM Vote WHERE category = 'Provincial' GROUP BY party_name ORDER BY COUNT(*) DESC LIMIT 1) as leading_party,
-        COUNT(*) as total_votes
-      FROM Vote
-      WHERE category = 'Provincial'
-      UNION ALL
-      SELECT 'Free State', NULL, 0
-      UNION ALL
-      SELECT 'Gauteng', NULL, 0
-      UNION ALL
-      SELECT 'KwaZulu-Natal', NULL, 0
-      UNION ALL
-      SELECT 'Limpopo', NULL, 0
-      UNION ALL
-      SELECT 'Mpumalanga', NULL, 0
-      UNION ALL
-      SELECT 'Northern Cape', NULL, 0
-      UNION ALL
-      SELECT 'North West', NULL, 0
-      UNION ALL
-      SELECT 'Western Cape', NULL, 0
+        pb.party_name,
+        pb.candidate_name,
+        COUNT(v.id) AS total_votes
+      FROM ProvincialBallot pb
+      LEFT JOIN Vote v 
+        ON v.party_name = pb.party_name 
+        AND v.category = 'Provincial'
+      GROUP BY pb.party_name, pb.candidate_name
+      ORDER BY total_votes DESC
     `);
     res.json(rows);
   } catch (error) {
@@ -123,17 +112,21 @@ app.get('/api/election/provincial', async (req, res) => {
   }
 });
 
-// Regional results route
+// ------------------------ REGIONAL RESULTS (FIXED) ------------------------
 app.get('/api/election/regional', async (req, res) => {
   try {
     const conn = await getConnection();
     const [rows] = await conn.execute(`
-      SELECT
-        party_name,
-        candidate_name,
-        vote_count
-      FROM RegionalBallot
-      ORDER BY vote_count DESC
+      SELECT 
+        rb.party_name,
+        rb.candidate_name,
+        COUNT(v.id) AS total_votes
+      FROM RegionalBallot rb
+      LEFT JOIN Vote v 
+        ON v.party_name = rb.party_name 
+        AND v.category = 'Regional'
+      GROUP BY rb.party_name, rb.candidate_name
+      ORDER BY total_votes DESC
     `);
     res.json(rows);
   } catch (error) {
@@ -142,25 +135,25 @@ app.get('/api/election/regional', async (req, res) => {
   }
 });
 
-// Seat allocation route
+// ------------------------ SEAT ALLOCATION ------------------------
 app.get('/api/election/seats', async (req, res) => {
   try {
     const conn = await getConnection();
     const [voteStats] = await conn.execute(`
-      SELECT party_name, COUNT(*) as votes
+      SELECT party_name, COUNT(*) AS votes
       FROM Vote
       WHERE category = 'National'
       GROUP BY party_name
       ORDER BY votes DESC
     `);
 
-    const totalVotes = voteStats.reduce((sum, party) => sum + party.votes, 0);
+    const totalVotes = voteStats.reduce((sum, p) => sum + p.votes, 0);
     const totalSeats = 400;
 
     const seatAllocation = voteStats.map(party => ({
       party: party.party_name,
-      seats: totalVotes > 0 ? Math.round((party.votes / totalVotes) * totalSeats) : 0,
-      votes: party.votes
+      votes: party.votes,
+      seats: totalVotes > 0 ? Math.round((party.votes / totalVotes) * totalSeats) : 0
     }));
 
     res.json(seatAllocation);
@@ -170,7 +163,7 @@ app.get('/api/election/seats', async (req, res) => {
   }
 });
 
-// Start server
+// ------------------------ START SERVER ------------------------
 app.listen(PORT, () => {
   console.log(`🚀 Election API server running on port ${PORT}`);
 });
