@@ -31,12 +31,12 @@ const Dashboard = ({ onNavigate, electionData, lastUpdated, onRefresh }) => {
 
   const getPartyColor = (partyName) => {
     const colors = {
-      'African National Congress': 'green',
-      'Democratic Alliance': 'blue',
-      'MK Party': 'black',
+      'ANC': 'green',
+      'DA': 'blue',
+      'MK': 'black',
       'EFF': 'red',
       'IFP': 'yellow',
-      'Freedom Front Plus': 'orange',
+      'VF+': 'orange',
       'ActionSA': 'purple'
     };
     return colors[partyName] || 'gray';

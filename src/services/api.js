@@ -44,6 +44,18 @@ export const ElectionAPI = {
     }
   },
 
+  // Get regional results
+  getRegionalResults: async () => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/election/regional`);
+      if (!response.ok) throw new Error('Failed to fetch regional results');
+      return await response.json();
+    } catch (error) {
+      console.error('Error fetching regional results:', error);
+      return [];
+    }
+  },
+
   // Get seat allocation
   getSeatAllocation: async () => {
     try {

@@ -123,6 +123,27 @@ app.get('/api/election/provincial', async (req, res) => {
   }
 });
 
+// Regional results route
+app.get('/api/election/regional', async (req, res) => {
+  try {
+    const conn = await getConnection();
+    const [rows] = await conn.execute(`
+      SELECT 
+        region,
+        party_name,
+        candidate_name,
+        vote_count,
+        image
+      FROM RegionalBallot
+      ORDER BY region, vote_count DESC
+    `);
+    res.json(rows);
+  } catch (error) {
+    console.error('Error fetching regional results:', error);
+    res.status(500).json({ error: 'Failed to fetch regional results' });
+  }
+});
+
 // Seat allocation route
 app.get('/api/election/seats', async (req, res) => {
   try {
