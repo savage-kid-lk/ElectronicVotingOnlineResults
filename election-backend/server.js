@@ -18,27 +18,20 @@ const dbConfig = {
 };
 
 let connection = null;
-
-// Connect to database once
 const getConnection = async () => {
   if (!connection) {
-    try {
-      connection = await mysql.createConnection(dbConfig);
-      console.log('✅ Connected to MySQL database');
-    } catch (error) {
-      console.error('❌ Database connection failed:', error);
-      throw error;
-    }
+    connection = await mysql.createConnection(dbConfig);
+    console.log('✅ Connected to MySQL database');
   }
   return connection;
 };
 
-// Root route
+// ✅ Root route
 app.get('/', (req, res) => {
   res.send('✅ Election API server is live!');
 });
 
-// ------------------------ SUMMARY ------------------------
+// ✅ Election summary
 app.get('/api/election/summary', async (req, res) => {
   try {
     const conn = await getConnection();
@@ -66,7 +59,7 @@ app.get('/api/election/summary', async (req, res) => {
   }
 });
 
-// ------------------------ NATIONAL RESULTS ------------------------
+// ✅ National results (add fake "votes_today" column for UI compatibility)
 app.get('/api/election/statistics', async (req, res) => {
   try {
     const conn = await getConnection();
@@ -74,7 +67,8 @@ app.get('/api/election/statistics', async (req, res) => {
       SELECT 
         nb.party_name,
         nb.candidate_name,
-        COUNT(v.id) AS total_votes
+        COUNT(v.id) AS total_votes,
+        0 AS votes_today
       FROM NationalBallot nb
       LEFT JOIN Vote v 
         ON v.party_name = nb.party_name 
@@ -89,20 +83,20 @@ app.get('/api/election/statistics', async (req, res) => {
   }
 });
 
-// ------------------------ PROVINCIAL RESULTS ------------------------
+// ✅ Provincial results (alias to match React keys)
 app.get('/api/election/provincial', async (req, res) => {
   try {
     const conn = await getConnection();
     const [rows] = await conn.execute(`
       SELECT 
-        pb.party_name,
-        pb.candidate_name,
+        pb.candidate_name AS province,
+        pb.party_name AS leading_party,
         COUNT(v.id) AS total_votes
       FROM ProvincialBallot pb
       LEFT JOIN Vote v 
         ON v.party_name = pb.party_name 
         AND v.category = 'Provincial'
-      GROUP BY pb.party_name, pb.candidate_name
+      GROUP BY pb.candidate_name, pb.party_name
       ORDER BY total_votes DESC
     `);
     res.json(rows);
@@ -112,7 +106,7 @@ app.get('/api/election/provincial', async (req, res) => {
   }
 });
 
-// ------------------------ REGIONAL RESULTS (FIXED) ------------------------
+// ✅ Regional results (alias "total_votes" -> "vote_count")
 app.get('/api/election/regional', async (req, res) => {
   try {
     const conn = await getConnection();
@@ -120,13 +114,13 @@ app.get('/api/election/regional', async (req, res) => {
       SELECT 
         rb.party_name,
         rb.candidate_name,
-        COUNT(v.id) AS total_votes
+        COUNT(v.id) AS vote_count
       FROM RegionalBallot rb
       LEFT JOIN Vote v 
         ON v.party_name = rb.party_name 
         AND v.category = 'Regional'
       GROUP BY rb.party_name, rb.candidate_name
-      ORDER BY total_votes DESC
+      ORDER BY vote_count DESC
     `);
     res.json(rows);
   } catch (error) {
@@ -135,7 +129,7 @@ app.get('/api/election/regional', async (req, res) => {
   }
 });
 
-// ------------------------ SEAT ALLOCATION ------------------------
+// ✅ Seat allocation
 app.get('/api/election/seats', async (req, res) => {
   try {
     const conn = await getConnection();
@@ -163,7 +157,7 @@ app.get('/api/election/seats', async (req, res) => {
   }
 });
 
-// ------------------------ START SERVER ------------------------
+// ✅ Start server
 app.listen(PORT, () => {
   console.log(`🚀 Election API server running on port ${PORT}`);
 });
